@@ -1,0 +1,48 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/app
+
+hooks:
+  BeforeInstall:
+    - location: ""
+      timeout: 300
+      runas: root
+      script: |
+        #!/bin/bash
+        echo "Running BeforeInstall commands..."
+        sudo apt update -y
+        sudo apt install -y nodejs npm
+        sudo npm install -g pm2
+
+  AfterInstall:
+    - location: ""
+      timeout: 300
+      runas: root
+      script: |
+        #!/bin/bash
+        echo "Running AfterInstall commands..."
+        cd /home/ubuntu/app
+        npm install
+
+  ApplicationStart:
+    - location: ""
+      timeout: 300
+      runas: root
+      script: |
+        #!/bin/bash
+        echo "Running ApplicationStart commands..."
+        cd /home/ubuntu/app
+        pm2 stop all || true
+        pm2 start server.js --name "node-app"
+        pm2 save
+
+  ValidateService:
+    - location: ""
+      timeout: 300
+      runas: root
+      script: |
+        #!/bin/bash
+        echo "Running ValidateService commands..."
+        curl -f http://localhost:3000 || exit 1
